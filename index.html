@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixio Pro | 终极图像处理站</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sf-blue: #007aff;
+            --sf-bg: #f5f5f7;
+            --sf-card: #ffffff;
+            --sf-text: #1d1d1f;
+            --sf-text-sub: #86868b;
+            --sf-border: #d2d2d7;
+            --sf-glass: rgba(255, 255, 255, 0.7);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --sf-bg: #000000;
+                --sf-card: #1c1c1e;
+                --sf-text: #f5f5f7;
+                --sf-text-sub: #86868b;
+                --sf-border: #38383a;
+                --sf-glass: rgba(28, 28, 30, 0.7);
+            }
+        }
+
+        * {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', -apple-system, sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: var(--sf-bg);
+            color: var(--sf-text);
+            overflow: hidden;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: 360px;
+            background: var(--sf-card);
+            padding: 32px 24px;
+            border-right: 1px solid var(--sf-border);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0 0 24px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .group {
+            margin-bottom: 28px;
+        }
+
+        .group-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--sf-text-sub);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .control-item {
+            background: var(--sf-bg);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid transparent;
+        }
+
+        .control-item:hover {
+            border-color: var(--sf-border);
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .desc {
+            font-size: 12px;
+            color: var(--sf-text-sub);
+            line-height: 1.4;
+            margin-top: 6px;
+        }
+
+        select,
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            background: var(--sf-card);
+            border: 1px solid var(--sf-border);
+            border-radius: 10px;
+            padding: 10px;
+            color: var(--sf-text);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .var-btns {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .btn-var {
+            background: var(--sf-card);
+            border: 1px solid var(--sf-border);
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-var:hover {
+            border-color: var(--sf-blue);
+            color: var(--sf-blue);
+        }
+
+        /* --- Main Content --- */
+        .main {
+            flex: 1;
+            position: relative;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-nav {
+            position: absolute;
+            top: 24px;
+            right: 40px;
+            z-index: 50;
+            display: flex;
+            gap: 20px;
+        }
+
+        .lang-btn {
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--sf-text-sub);
+            border: none;
+            background: none;
+        }
+
+        .lang-btn.active {
+            color: var(--sf-blue);
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+
+        /* Empty State Hint */
+        #empty-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 100%;
+            pointer-events: none;
+        }
+
+        #empty-hint h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin: 0 0 16px 0;
+            letter-spacing: -1.5px;
+        }
+
+        #empty-hint kbd {
+            background: var(--sf-text);
+            color: var(--sf-bg);
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 18px;
+            margin: 0 4px;
+        }
+
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 32px;
+            padding: 100px 40px 40px;
+        }
+
+        /* Card System */
+        .card {
+            background: var(--sf-card);
+            border-radius: 24px;
+            padding: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--sf-border);
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 24px;
+            height: 24px;
+            background: var(--sf-text);
+            color: var(--sf-bg);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            opacity: 0;
+        }
+
+        .card:hover .remove-btn {
+            opacity: 1;
+        }
+
+        .img-container {
+            width: 100%;
+            height: 160px;
+            background: var(--sf-bg);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .img-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .local-notice {
+            text-align: center;
+            font-size: 12px;
+            color: var(--sf-text-sub);
+            padding: 24px;
+            margin-top: auto;
+            line-height: 1.6;
+        }
+
+        /* Action Buttons */
+        .footer {
+            margin-top: auto;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .btn-primary {
+            background: var(--sf-blue);
+            color: white;
+            box-shadow: 0 8px 20px rgba(0, 122, 255, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background: var(--sf-border);
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* Apple Switch */
+        .switch-box {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #e9e9ea;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        .switch-box::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        input:checked+.switch-box {
+            background: var(--sf-blue);
+        }
+
+        input:checked+.switch-box::after {
+            left: 22px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <h2 id="txt-title">Pixio Pro</h2>
+
+        <div class="group">
+            <span class="group-label" id="txt-g1">Output Setting</span>
+            <div class="control-item">
+                <span class="label-row"><span id="txt-fmt">Format</span></span>
+                <select id="global-format" onchange="saveConfig()">
+                    <option value="image/jpeg">JPEG</option>
+                    <option value="image/webp">WebP</option>
+                    <option value="image/png">PNG</option>
+                </select>
+                <p class="desc" id="txt-fmt-desc">JPEG is balanced, WebP for web, PNG for lossless.</p>
+            </div>
+            <div class="control-item">
+                <span class="label-row"><span id="txt-qty">Quality</span><span id="q-val">85%</span></span>
+                <input type="range" id="global-quality" min="10" max="100" value="85" style="width:100%"
+                    oninput="document.getElementById('q-val').innerText=this.value+'%'; saveConfig()">
+            </div>
+        </div>
+
+        <div class="group">
+            <span class="group-label" id="txt-g2">Automation</span>
+            <div class="control-item">
+                <span class="label-row" id="txt-naming">Batch Naming</span>
+                <input type="text" id="name-pattern" value="Export_{date}_{n}" oninput="saveConfig()">
+                <div class="var-btns">
+                    <button class="btn-var" onclick="insertVar('{n}')" id="btn-var-n">Seq</button>
+                    <button class="btn-var" onclick="insertVar('{date}')" id="btn-var-date">Date</button>
+                    <button class="btn-var" onclick="insertVar('{time}')" id="btn-var-time">Time</button>
+                </div>
+                <p class="desc" id="txt-naming-desc">Use buttons to insert dynamic variables.</p>
+            </div>
+        </div>
+
+        <div class="group">
+            <span class="group-label" id="txt-g3">Workflow</span>
+            <div class="control-item">
+                <div class="label-row">
+                    <span id="txt-resize">Resize Width</span>
+                    <label style="cursor:pointer"><input type="checkbox" id="use-resize" style="display:none"
+                            onchange="saveConfig()">
+                        <div class="switch-box"></div>
+                    </label>
+                </div>
+                <input type="number" id="target-width" value="1280" oninput="saveConfig()">
+                <p class="desc" id="txt-resize-desc">Constraint image to a specific width.</p>
+            </div>
+            <div class="control-item">
+                <div class="label-row">
+                    <span id="txt-wm">Watermark</span>
+                    <label style="cursor:pointer"><input type="checkbox" id="use-wm" style="display:none"
+                            onchange="saveConfig()">
+                        <div class="switch-box"></div>
+                    </label>
+                </div>
+                <select id="wm-type" onchange="toggleWmType(); saveConfig()" style="margin-bottom:8px;">
+                    <option value="text" id="opt-wm-text">Text Mode</option>
+                    <option value="image" id="opt-wm-img">Image Mode</option>
+                </select>
+                <div id="wm-text-ctrl">
+                    <input type="text" id="wm-text" value="Workflow Pro" oninput="saveConfig()">
+                    <div style="display:flex; gap:5px; margin-top:8px;">
+                        <input type="color" id="wm-color" value="#ffffff" oninput="saveConfig()"
+                            style="width:40px; height:32px; padding:2px; border:none;">
+                        <input type="number" id="wm-size" value="30" oninput="saveConfig()" style="flex:1"
+                            placeholder="Size">
+                    </div>
+                </div>
+                <div id="wm-img-ctrl" style="display:none; margin-top:8px;">
+                    <button class="btn-var" style="width:100%; padding:8px;"
+                        onclick="document.getElementById('wm-file').click()" id="txt-up-wm">Upload Logo</button>
+                    <input type="file" id="wm-file" accept="image/*" style="display:none"
+                        onchange="handleWmUpload(this)">
+                    <img id="wm-preview-img"
+                        style="width:40px; height:40px; margin-top:8px; display:none; border-radius:4px; background:#eee;">
+                </div>
+                <select id="wm-pos" style="margin-top:8px;" onchange="saveConfig()">
+                    <option value="tl" id="opt-pos-tl">Top Left</option>
+                    <option value="tr" id="opt-pos-tr">Top Right</option>
+                    <option value="center" id="opt-pos-center">Center</option>
+                    <option value="bl" id="opt-pos-bl">Bottom Left</option>
+                    <option value="br" id="opt-pos-br">Bottom Right</option>
+                    <option value="tile" id="opt-pos-tile">💠 Full Tiling</option>
+                </select>
+                <p class="desc" id="txt-wm-desc">Tiling mode provides maximum protection.</p>
+            </div>
+        </div>
+
+        <div class="group" id="pro-zone"
+            style="border-top: 1px solid var(--sf-border); padding-top: 24px; margin-top: 20px;">
+            <span class="group-label" id="txt-pro-status">PREMIUM ACCESS</span>
+
+            <div id="pro-locked">
+                <p class="desc" id="txt-pro-hint" style="margin-bottom: 12px;">One-time $1.99 to unlock batch export
+                    limit & pro features.</p>
+
+                <button id="main-pay-btn" class="btn-action" style="color: white; margin-bottom: 8px; font-size: 14px;"
+                    onclick="handlePayment()">
+                    Pay now
+                </button>
+
+                <button class="btn-action"
+                    style="background: transparent; color: var(--sf-text); border: 1px solid var(--sf-border); margin-bottom: 0px; font-size: 14px;"
+                    onclick="activatePro()" id="txt-activate">
+                    Enter License Key
+                </button>
+            </div>
+
+            <div id="pro-unlocked" style="display:none;">
+                <div
+                    style="color: #34c759; font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                    <span>✓</span> <span id="txt-active-msg">Pro Version Activated</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <button class="btn-action" style="background:none; color:var(--sf-blue); font-size:14px;"
+                onclick="addTemplate()" id="txt-btn-tpl">+ Add Fixed Template</button>
+            <button id="run-btn" class="btn-action btn-primary" disabled onclick="executeExport()">Export All</button>
+        </div>
+    </aside>
+
+    <main class="main">
+        <nav class="top-nav">
+            <button class="lang-btn active" onclick="changeLang('en')" id="btn-en">EN</button>
+            <button class="lang-btn" onclick="changeLang('zh')" id="btn-zh">中文</button>
+        </nav>
+
+        <div id="empty-hint">
+            <h1 id="txt-hint-h1">Image processing,done in one step.</h1>
+            <p id="txt-hint-p">Press <kbd>Ctrl</kbd> + <kbd>V</kbd> to start processing.</p>
+        </div>
+
+        <div id="grid"></div>
+
+        <div class="local-notice">
+            All processing is done locally in your browser. No image data is ever uploaded to our servers.<br>
+            （所有处理均在本地完成，图片数据永不上传）
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || (e.ctrlKey && e.key === 'u')) e.preventDefault();
+        });
+
+        let tasks = [];
+        let taskCounter = 1;
+        let watermarkImg = null;
+        let currentLang = 'en';
+
+        const PAY_LINKS = {
+            en: "https://www.paypal.com/ncp/payment/2QT59BLJDGE5J",
+            zh: "https://ifdian.net/item/2dc7a45c22e511f19bf852540025c377"
+        };
+
+        function handlePayment() {
+            const link = PAY_LINKS[currentLang];
+            if (link) {
+                window.open(link, '_blank');
+            }
+        }
+
+        const langData = {
+            en: {
+                g1: "Output Setting", fmt: "Format", fmtDesc: "JPEG is balanced, WebP for web, PNG for lossless.", qty: "Quality",
+                g2: "Automation", naming: "Batch Naming", namingDesc: "Use buttons to insert dynamic variables.",
+                varDate: "Date", varTime: "Time", varN: "Seq",
+                g3: "Workflow", resize: "Resize Width", resizeDesc: "Constraint image to a specific width.",
+                wm: "Watermark", wmDesc: "Tiling mode provides maximum protection.", upWm: "Upload Logo",
+                wmText: "Text Mode", wmImg: "Image Mode",
+                posBR: "Bottom Right", posTile: "💠 Full Tiling", posCenter: "Center", posTL: "Top Left",
+                posTR: "Top Right", posBL: "Bottom Left",
+                btnTpl: "+ Add Fixed Template", btnRun: "Export All",
+                hintH1: "Image processing,done in one step.", hintP: "Press <kbd>Ctrl</kbd>+<kbd>V</kbd> (Pro Drag & Drop)",
+                wait: "Waiting...", tplName: "Template", auto: "Auto Follow",
+                forceJPG: "Force JPG", forceWebP: "Force WebP", forcePNG: "Force PNG",
+                proStatus: "PREMIUM ACCESS", proHint: "One-time $1.99 to unlock all features forever.",
+                activate: "Enter License Key", activeMsg: "Pro Version Activated",
+                limitMsg: "Free version is limited to 3 images. Buy Pro for unlimited access & drag-drop.",
+                payBtn: "Pay with PayPal"
+            },
+            zh: {
+                g1: "输出预设", fmt: "输出格式", fmtDesc: "JPEG 兼容性好，WebP 体积小，PNG 无损。", qty: "导出质量",
+                g2: "自动化处理", naming: "批量命名规则", namingDesc: "点击按钮在光标处插入动态变量。",
+                varDate: "日期", varTime: "时间", varN: "序号",
+                g3: "核心工作流", resize: "固定宽度缩放", resizeDesc: "开启后图片将等比缩放到指定宽度。",
+                wm: "品牌水印", wmDesc: "满屏平铺模式可提供最高级的防盗图保护。", upWm: "上传水印图",
+                wmText: "文字模式", wmImg: "图片模式",
+                posBR: "右下角", posTile: "💠 满屏平铺", posCenter: "正中心", posTL: "左上角",
+                posTR: "右上角", posBL: "左下角",
+                btnTpl: "+ 添加固定命名模板", btnRun: "一键执行导出",
+                hintH1: "图像处理，一步到位。", hintP: "按下 <kbd>Ctrl</kbd>+<kbd>V</kbd> (高级版支持拖拽)",
+                wait: "等待粘贴内容...", tplName: "固定模板", auto: "跟随全局",
+                forceJPG: "强制 JPG", forceWebP: "强制 WebP", forcePNG: "强制 PNG",
+                proStatus: "高级版权限", proHint: "仅需 ¥8 一次性买断全部功能。",
+                activate: "输入授权码激活", activeMsg: "高级版已永久激活",
+                limitMsg: "免费版最多导入 3 张图片。购买高级版解锁无限制及拖拽功能。",
+                payBtn: "使用微信支付解锁"
+            }
+        };
+
+        function changeLang(lang) {
+            currentLang = lang;
+            document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+            document.getElementById('btn-zh').classList.toggle('active', lang === 'zh');
+            const d = langData[lang];
+
+            // 侧边栏文字
+            document.getElementById('txt-g1').innerText = d.g1;
+            document.getElementById('txt-fmt').innerText = d.fmt;
+            document.getElementById('txt-fmt-desc').innerText = d.fmtDesc;
+            document.getElementById('txt-qty').innerText = d.qty;
+            document.getElementById('txt-g2').innerText = d.g2;
+            document.getElementById('txt-naming').innerText = d.naming;
+            document.getElementById('txt-naming-desc').innerText = d.namingDesc;
+            document.getElementById('btn-var-n').innerText = d.varN;
+            document.getElementById('btn-var-date').innerText = d.varDate;
+            document.getElementById('btn-var-time').innerText = d.varTime;
+            document.getElementById('txt-g3').innerText = d.g3;
+            document.getElementById('txt-resize').innerText = d.resize;
+            document.getElementById('txt-resize-desc').innerText = d.resizeDesc;
+            document.getElementById('txt-wm').innerText = d.wm;
+            document.getElementById('txt-wm-desc').innerText = d.wmDesc;
+            document.getElementById('txt-up-wm').innerText = d.upWm;
+            document.getElementById('txt-btn-tpl').innerText = d.btnTpl;
+            document.getElementById('run-btn').innerText = d.btnRun;
+
+            if (document.getElementById('txt-pro-status')) document.getElementById('txt-pro-status').innerText = d.proStatus;
+            if (document.getElementById('txt-pro-hint')) document.getElementById('txt-pro-hint').innerText = d.proHint;
+            if (document.getElementById('txt-activate')) document.getElementById('txt-activate').innerText = d.activate;
+            if (document.getElementById('txt-active-msg')) document.getElementById('txt-active-msg').innerText = d.activeMsg;
+
+            // Update main payment button visually
+            const payBtn = document.getElementById('main-pay-btn');
+            if (payBtn) {
+                payBtn.innerText = d.payBtn;
+                payBtn.style.background = currentLang === 'zh' ? '#07c160' : '#0070ba';
+            }
+
+            // 下拉菜单选项翻译
+            document.getElementById('opt-wm-text').innerText = d.wmText;
+            document.getElementById('opt-wm-img').innerText = d.wmImg;
+            document.getElementById('opt-pos-tl').innerText = d.posTL;
+            document.getElementById('opt-pos-tr').innerText = d.posTR;
+            document.getElementById('opt-pos-center').innerText = d.posCenter;
+            document.getElementById('opt-pos-bl').innerText = d.posBL;
+            document.getElementById('opt-pos-br').innerText = d.posBR;
+            document.getElementById('opt-pos-tile').innerText = d.posTile;
+
+            // 主界面
+            document.getElementById('txt-hint-h1').innerText = d.hintH1;
+            document.getElementById('txt-hint-p').innerHTML = d.hintP;
+
+            render();
+        }
+
+        function insertVar(val) {
+            const input = document.getElementById('name-pattern');
+            const start = input.selectionStart;
+            input.value = input.value.slice(0, start) + val + input.value.slice(input.selectionEnd);
+            input.focus();
+            input.setSelectionRange(start + val.length, start + val.length);
+            saveConfig();
+        }
+
+        function saveConfig() {
+            const cfg = {
+                format: document.getElementById('global-format').value,
+                quality: document.getElementById('global-quality').value,
+                pattern: document.getElementById('name-pattern').value,
+                resize: document.getElementById('use-resize').checked,
+                width: document.getElementById('target-width').value,
+                wm: document.getElementById('use-wm').checked,
+                wmType: document.getElementById('wm-type').value,
+                wmText: document.getElementById('wm-text').value,
+                wmPos: document.getElementById('wm-pos').value,
+                wmData: document.getElementById('wm-preview-img').src
+            };
+            localStorage.setItem('wf_pro_v11', JSON.stringify(cfg));
+        }
+
+        function loadConfig() {
+            const s = localStorage.getItem('wf_pro_v11');
+            if (s) {
+                const c = JSON.parse(s);
+                document.getElementById('global-format').value = c.format;
+                document.getElementById('global-quality').value = c.quality;
+                document.getElementById('name-pattern').value = c.pattern;
+                document.getElementById('use-resize').checked = c.resize;
+                document.getElementById('target-width').value = c.width;
+                document.getElementById('use-wm').checked = c.wm;
+                document.getElementById('wm-type').value = c.wmType;
+                document.getElementById('wm-text').value = c.wmText;
+                document.getElementById('wm-pos').value = c.wmPos;
+                if (c.wmData && c.wmData.startsWith('data:')) {
+                    watermarkImg = new Image(); watermarkImg.src = c.wmData;
+                    document.getElementById('wm-preview-img').src = c.wmData;
+                    document.getElementById('wm-preview-img').style.display = 'block';
+                }
+            }
+            changeLang('en');
+            toggleWmType();
+        }
+
+        function toggleWmType() {
+            const isText = document.getElementById('wm-type').value === 'text';
+            document.getElementById('wm-text-ctrl').style.display = isText ? 'block' : 'none';
+            document.getElementById('wm-img-ctrl').style.display = isText ? 'none' : 'block';
+        }
+
+        function handleWmUpload(input) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                watermarkImg = new Image();
+                watermarkImg.onload = () => {
+                    document.getElementById('wm-preview-img').src = e.target.result;
+                    document.getElementById('wm-preview-img').style.display = 'block';
+                    saveConfig();
+                };
+                watermarkImg.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        document.addEventListener('paste', e => {
+            const file = Array.from(e.clipboardData.items).find(x => x.type.includes('image'))?.getAsFile();
+            if (!file) return;
+
+            if (!isPro() && tasks.filter(t => !t.isTpl).length >= 3) {
+                alert(langData[currentLang].limitMsg);
+                return;
+            }
+
+            const fmt = document.getElementById('global-format').value;
+            const activeTpl = tasks.find(t => t.active);
+            if (activeTpl) { activeTpl.blob = file; activeTpl.active = false; }
+            else { tasks.push({ id: Date.now(), blob: file, name: generateName(), isTpl: false, format: fmt }); }
+            render();
+        });
+
+        document.addEventListener('dragover', e => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', e => {
+            e.preventDefault();
+            const files = Array.from(e.dataTransfer.files).filter(x => x.type.includes('image'));
+            if (files.length === 0) return;
+
+            if (!isPro()) {
+                alert(langData[currentLang].limitMsg);
+                return;
+            }
+
+            const fmt = document.getElementById('global-format').value;
+            let baseId = Date.now();
+            files.forEach(file => {
+                tasks.push({ id: baseId++, blob: file, name: generateName(), isTpl: false, format: fmt });
+            });
+            render();
+        });
+
+        function generateName() {
+            const p = document.getElementById('name-pattern').value;
+            const now = new Date();
+            const d = now.toISOString().slice(0, 10).replace(/-/g, '');
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            return p.replace(/{n}/g, taskCounter++).replace(/{date}/g, d).replace(/{time}/g, h + m);
+        }
+
+        function addTemplate() {
+            const fmt = document.getElementById('global-format').value;
+            tasks.push({ id: Date.now(), blob: null, name: langData[currentLang].tplName, isTpl: true, format: fmt });
+            render();
+        }
+
+        function render() {
+            const grid = document.getElementById('grid');
+            const hint = document.getElementById('empty-hint');
+            const d = langData[currentLang];
+            hint.style.opacity = tasks.length > 0 ? '0' : '1';
+            grid.innerHTML = '';
+
+            tasks.forEach(t => {
+                const el = document.createElement('div');
+                el.className = `card ${t.isTpl ? 'is-tpl' : ''} ${t.active ? 'active' : ''}`;
+                el.onclick = (e) => { if (!['INPUT', 'SELECT', 'BUTTON'].includes(e.target.tagName)) { tasks.forEach(i => i.active = i.id === t.id); render(); } };
+                const preview = t.blob ? `<img src="${URL.createObjectURL(t.blob)}">` : `<span>${d.wait}</span>`;
+                el.innerHTML = `
+                <button class="remove-btn" onclick="removeTask(${t.id})">✕</button>
+                <div class="img-container">${preview}</div>
+                <div style="display:flex; justify-content:center; align-items:center; margin-top:8px; border:1px solid var(--sf-border); border-radius:8px; background:var(--sf-bg); overflow:hidden;">
+                    <input type="text" value="${t.name}" onchange="updateTask(${t.id}, 'name', this.value)" style="width:55%; min-width:0; border:none; background:transparent; padding:8px 2px 8px 8px; font-size:13px; font-weight:600; color:var(--sf-text); text-align:right; outline:none;">
+                    <select onchange="updateTask(${t.id}, 'format', this.value)" style="width:45%; border:none; background:transparent; font-size:13px; font-weight:700; color:var(--sf-blue); cursor:pointer; outline:none; padding:8px 8px 8px 2px;">
+                        <option value="image/jpeg" ${t.format === 'image/jpeg' ? 'selected' : ''}>.jpg</option>
+                        <option value="image/webp" ${t.format === 'image/webp' ? 'selected' : ''}>.webp</option>
+                        <option value="image/png" ${t.format === 'image/png' ? 'selected' : ''}>.png</option>
+                    </select>
+                </div>
+            `;
+                grid.appendChild(el);
+            });
+            document.getElementById('run-btn').disabled = !tasks.some(t => t.blob);
+        }
+
+        function removeTask(id) { tasks = tasks.filter(x => x.id !== id); render(); }
+        function updateTask(id, k, v) { const t = tasks.find(x => x.id === id); if (t) t[k] = v; }
+
+        const _v = function (k) { if (!k || k.length !== 19) return !1; if (k.charCodeAt(0) !== 87 || k.charCodeAt(1) !== 70 || k.charCodeAt(2) !== 80) return !1; if (k.slice(-4) !== String.fromCharCode(50, 48, 50, 54)) return !1; var p = k.split('-'); return p[1] && p[1].indexOf(String.fromCharCode(88)) > -1; };
+        function isPro() {
+            try { return _v(atob(localStorage.getItem('_wfk_11'))); } catch (e) { return false; }
+        }
+
+        function activatePro() {
+            const d = langData[currentLang];
+            const key = prompt(d.activate);
+            if (!key) return;
+            const k = key.trim().toUpperCase();
+            if (_v(k)) {
+                localStorage.setItem('_wfk_11', btoa(k));
+                localStorage.removeItem('workflow_pro_active'); // Clear old cached versions
+                alert(currentLang === 'zh' ? "🔑 授权成功！欢迎使用高级版。" : "🔑 Success! Welcome to Pro version.");
+                location.reload();
+            } else {
+                alert(currentLang === 'zh' ? "授权码格式错误或已过期。" : "Invalid or expired License Key.");
+            }
+        }
+
+        async function executeExport() {
+            if (!isPro() && tasks.filter(t => !t.isTpl).length > 3) {
+                alert(langData[currentLang].limitMsg);
+                return;
+            }
+
+            const btn = document.getElementById('run-btn');
+            const oldText = btn.innerText;
+            btn.innerText = "...";
+            for (const t of tasks) {
+                if (!t.blob) continue;
+                const fmt = t.format;
+                const res = await processImage(t.blob, fmt);
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(res);
+                a.download = `${t.name}.${fmt.split('/')[1]}`;
+                a.click();
+                await new Promise(r => setTimeout(r, 300));
+            }
+            tasks = tasks.filter(t => t.isTpl).map(t => ({ ...t, blob: null }));
+            taskCounter = 1;
+            render();
+            btn.innerText = oldText;
+        }
+
+        async function processImage(blob, format) {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.onload = () => {
+                    const cvs = document.createElement('canvas');
+                    const ctx = cvs.getContext('2d');
+                    let w = img.width, h = img.height;
+                    if (document.getElementById('use-resize').checked) {
+                        const tw = document.getElementById('target-width').value;
+                        if (w > tw) { h = h * (tw / w); w = tw; }
+                    }
+                    cvs.width = w; cvs.height = h;
+                    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(img, 0, 0, w, h);
+
+                    if (document.getElementById('use-wm').checked) {
+                        ctx.save();
+                        ctx.globalAlpha = 0.3;
+                        const pos = document.getElementById('wm-pos').value;
+                        const type = document.getElementById('wm-type').value;
+
+                        if (pos === 'tile') {
+                            ctx.rotate(-30 * Math.PI / 180);
+                            const gap = 150;
+                            if (type === 'image' && watermarkImg) {
+                                const sw = w * 0.1; const sh = (watermarkImg.height / watermarkImg.width) * sw;
+                                for (let i = -w; i < w * 2; i += sw + gap) for (let j = -h; j < h * 2; j += sh + gap) ctx.drawImage(watermarkImg, i, j, sw, sh);
+                            } else {
+                                const fs = parseInt(document.getElementById('wm-size').value);
+                                ctx.font = `${fs}px sans-serif`; ctx.fillStyle = document.getElementById('wm-color').value;
+                                const txt = document.getElementById('wm-text').value; const tw = ctx.measureText(txt).width;
+                                for (let i = -w; i < w * 2; i += tw + gap) for (let j = -h; j < h * 2; j += fs + gap) ctx.fillText(txt, i, j);
+                            }
+                        } else {
+                            let itemW = 0, itemH = 0;
+                            let txt = '', fs = 0;
+
+                            if (type === 'image' && watermarkImg) {
+                                itemW = w * 0.15;
+                                itemH = (watermarkImg.height / watermarkImg.width) * itemW;
+                            } else {
+                                fs = parseInt(document.getElementById('wm-size').value);
+                                ctx.font = `bold ${fs}px sans-serif`;
+                                ctx.fillStyle = document.getElementById('wm-color').value;
+                                txt = document.getElementById('wm-text').value;
+                                itemW = ctx.measureText(txt).width;
+                                itemH = fs; // 估算文字高度
+                            }
+
+                            let x = 0, y = 0;
+                            const padding = 20;
+
+                            if (pos === 'tl') {
+                                x = padding;
+                                y = padding;
+                            } else if (pos === 'tr') {
+                                x = w - itemW - padding;
+                                y = padding;
+                            } else if (pos === 'center') {
+                                x = (w - itemW) / 2;
+                                y = (h - itemH) / 2;
+                            } else if (pos === 'bl') {
+                                x = padding;
+                                y = h - itemH - padding;
+                            } else if (pos === 'br') {
+                                x = w - itemW - padding;
+                                y = h - itemH - padding;
+                            }
+
+                            if (type === 'image' && watermarkImg) {
+                                ctx.drawImage(watermarkImg, x, y, itemW, itemH);
+                            } else {
+                                // 根据 top-left 获取绘制坐标，补充文字 baseline 偏移
+                                ctx.fillText(txt, x, y + itemH * 0.85);
+                            }
+                        }
+                        ctx.restore();
+                    }
+                    cvs.toBlob(b => resolve(b), format, document.getElementById('global-quality').value / 100);
+                };
+                img.src = URL.createObjectURL(blob);
+            });
+        }
+
+        window.onload = () => {
+            loadConfig();
+            if (isPro()) {
+                document.getElementById('pro-locked').style.display = 'none';
+                document.getElementById('pro-unlocked').style.display = 'block';
+            }
+        };
+    </script>
+</body>
+
+</html>
