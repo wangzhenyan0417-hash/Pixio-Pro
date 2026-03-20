@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Purchase Successful | Pixio Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sf-blue: #007aff;
+            --sf-bg: #f5f5f7;
+            --sf-text: #1d1d1f;
+            --sf-text-sub: #86868b;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --sf-bg: #000000;
+                --sf-text: #f5f5f7;
+                --sf-text-sub: #86868b;
+            }
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: var(--sf-bg);
+            color: var(--sf-text);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 500px;
+            padding: 40px;
+        }
+
+        .icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+            display: block;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+        }
+
+        p {
+            line-height: 1.6;
+            color: var(--sf-text-sub);
+            margin-bottom: 32px;
+        }
+
+        .license-box {
+            background: var(--sf-text);
+            color: var(--sf-bg);
+            padding: 24px;
+            border-radius: 20px;
+            font-family: monospace;
+            font-size: 20px;
+            letter-spacing: 2px;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .license-box:active {
+            transform: scale(0.98);
+        }
+
+        .copy-hint {
+            font-size: 12px;
+            margin-top: 12px;
+            opacity: 0.6;
+        }
+
+        .btn-back {
+            margin-top: 40px;
+            display: inline-block;
+            text-decoration: none;
+            color: var(--sf-blue);
+            font-weight: 600;
+            font-size: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <span class="icon">✨</span>
+        <h1 id="title">Thank You!</h1>
+        <p id="desc">Your support fuels minimalist tools. Please copy your license key below to unlock the Pro version.
+        </p>
+
+        <div class="license-box" onclick="copyKey()" id="license-key">
+            WFP9-X2KR-7M6Q-2026
+        </div>
+        <div class="copy-hint" id="copy-text">Click the code to copy</div>
+
+        <a href="index.html" class="btn-back" id="btn-back">← Back to Pixio Pro</a>
+    </div>
+
+    <script>
+        function copyKey() {
+            const key = document.getElementById('license-key').innerText;
+            navigator.clipboard.writeText(key.trim());
+            const hint = document.getElementById('copy-text');
+            const oldText = hint.innerText;
+            hint.innerText = "✅ Copied to clipboard";
+            hint.style.color = "#10b981";
+            setTimeout(() => {
+                hint.innerText = oldText;
+                hint.style.color = "";
+            }, 2000);
+        }
+    </script>
+</body>
+
+</html>
